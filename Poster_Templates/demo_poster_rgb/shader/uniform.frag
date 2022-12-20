@@ -12,18 +12,26 @@
         uniform vec3 metaballs[500];
 
 
+		uniform float elapsedTime;
+
+		uniform float mouseLoc;
+		uniform float mouseLoc2;
+
+		
+
+
+
 				
 
-		float lerp (float start, float end, float amt){
-			return (1.0-amt)*start+amt*end;
-		}
 	
 		void main() {
+
+
 			float x = vTexCoord.x * winWidth;
 			float y = vTexCoord.y * winHeight;
 			float v = 0.0;
 
-			for (float i = 0.0; i < 500.; i++) {
+			for (float i = 0.0; i < 480.; i++) {
 				vec3 ball = metaballs[int(i)];
 				float dx = ball.x - x;
 				float dy = ball.y - y;
@@ -33,16 +41,24 @@
 
 			if (boolF == 1.0) {
 
-				gl_FragColor = vec4(v*0.2,v*0.2,v*0.2,1.);
-
+				if (minF < v && v < maxF) {
+					float a = (v - 0.9) * 4.;
+				
+					gl_FragColor = vec4(vec3(255.,255.,255.), mouseLoc2);
+			
+				} else gl_FragColor = vec4(vec3(0, 0, 0), 1.0);
 
 			}else {
 
 
+				if (minF < v && v < maxF) {
+					float a = (v - 0.9) * 4.;
+				
+					gl_FragColor = vec4(vec3(0.,0.,0.),1.0);
+			
+				} else gl_FragColor = vec4(vec3(255., 255., 255.), mouseLoc);
+				
 
-				gl_FragColor = vec4(lerp(v*0.2, v*0.8, lerpAmount += 0.1),v*0.2,v*0.2,1.);
-				
-				
 
 			}
 			

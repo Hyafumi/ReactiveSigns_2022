@@ -4,7 +4,7 @@
 // depthH: The vertical resolution of the dataFiltered aray
 
 let metaballShader;
-let ballAmount = 500.0, metaballs = [];
+let ballAmount = 480.0, metaballs = [];
 let gra;
 let kpFrame = 0;
 let isConverted = false;
@@ -12,9 +12,15 @@ let offset = 0;
 let minFrag = 0.9;
 let maxFrag = 1.1;
 let defaultBallSize = 500;
+let mouseLocation;
+let mouseLocation2 = 1.0;
 
-let densityShader = [{'v1': 1, 'v2': 1, 'v3': 1, 'alpha': 1},{}];
-let destiinyShader = {'v1': 1, 'v2': 1, 'v3': 1, 'alpha': 1};
+let directionFlow = 'None';
+let leftCounter = 0;
+let stillCounter = 0;
+let rightCounter = 0;
+
+let xCache;
 
 let outlineBool = 1.0;
 
@@ -22,8 +28,8 @@ function preload() {
 	//metaballShader = getShader(this._renderer);
 	metaballShader = loadShader('shader/uniform.vert', 'shader/uniform.frag');
   	font = loadFont('assets/suisse.otf');
-	state1 = loadImage('assets/test14.png');
-	state2 = loadImage('assets/test7.png');
+	state1 = loadImage('assets/Final.png');
+	state2 = loadImage('assets/test57.png');
 }
 
 function setup() {
@@ -31,7 +37,6 @@ function setup() {
   setupOSC(true, true); // Don't remove this line. 1 argument to turn the depthstream on and off
   pixelDensity(1);
   textFont(font);
-	shader(metaballShader);
 
   for (let i = 0; i < ballAmount; i ++) metaballs.push(new Metaball());
 
@@ -45,17 +50,27 @@ function setup() {
   buffer2 = createGraphics(200, 175);
   buffer2.background(0, 0, 0);
   buffer2.image(state2, 0, 0)
+
+  xCache = getWindowWidth()/2;
+  noCursor();
 }
 
 function draw() {
+	
+	rect(0, 0, getWindowWidth(), getWindowHeight());
+
+	shader(metaballShader);
   if(frameCount == kpFrame + 20 && kpFrame != 0)for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
 	
 	var data = [];
   
 	for (const ball of metaballs) {
 		ball.update();
-		data.push(ball.pos.x+offset, ball.pos.y, ball.radius);
+		data.push(ball.pos.x, ball.pos.y, ball.radius);
 	}
+
+
+
 
 	
 	metaballShader.setUniform('metaballs', data);
@@ -65,30 +80,59 @@ function draw() {
 	metaballShader.setUniform("winHeight", getWindowHeight());
 	metaballShader.setUniform('minF', minFrag);
 	metaballShader.setUniform('maxF', maxFrag);
+	metaballShader.setUniform('mouseLoc', mouseLocation);
+	metaballShader.setUniform('mouseLoc2', mouseLocation2);
 
 
-	console.log(outlineBool)
 	rect(0, 0, getWindowWidth(), getWindowHeight());
 
-  if(position.x > getWindowWidth()/2){
-    if (isConverted == false){
-      isConverted = !isConverted;
-      destiny();
-    }
-  } else {
-    if (isConverted == true){
-      isConverted = !isConverted;
-      density();
-    }
-  }
+	if(position.x > 0 && position.x < getWindowWidth()/6){
+
+		outlineBool = 1,0;
+		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
+		mouseLocation2 = map(mouseX, getWindowWidth()/7, getWindowWidth()/6, 1, 0);
+
+	} else if (position.x > getWindowWidth()/6 && position.x < getWindowWidth()/6*5){
+		
+		outlineBool = 0,0;
+		let targetPos = getBlPxPos(buffer1);
+		setTargetPos(targetPos);
+		kpFrame = frameCount;
+		for(ball of metaballs) {
+			ball.destiny();
+		}
+		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
+		for(ball of metaballs) {
+			ball.density();
+		}
+
+		if(position.x > getWindowWidth()/6 && position.x < getWindowWidth()/2) {
+			mouseLocation = map(mouseX, getWindowWidth()/6, getWindowWidth()/3, 0, 1);
+		} else {
+			mouseLocation = map(mouseX, getWindowWidth()/3*2, getWindowWidth()/6*5, 1, 0);
+		}
+
+	} else {
+
+		outlineBool = 1,0;
+		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
+		mouseLocation2 = map(mouseX, getWindowWidth() - getWindowWidth()/6, getWindowWidth() - getWindowWidth()/7, 0, 1);
+
+	}
+
+
 
   	for(ball of metaballs) {
 
 
 		if(ball.grow == true){
-			if(ball.diagonalSize < 1000){
-				ball.diagonalSize += 15;
-			} 
+
+
+				if(ball.diagonalSize < 1200){
+					ball.diagonalSize += 15;
+				} 
+			
+
 		} else if(ball.shrink == true){
 			if(ball.diagonalSize > 0){
 				ball.diagonalSize -= 15;
@@ -96,9 +140,12 @@ function draw() {
 		}
 
 		if(ball.gotoTarget == true){
-			if(ball.diagonalSize > 1000){
-				ball.diagonalSize -= 15;
-			} 
+			
+				if(ball.diagonalSize > 1200){
+					ball.diagonalSize -= 15;
+				} 
+			
+
 		} else if (ball.gotoTarget == false){
 			if(ball.diagonalSize < 1450){
 				ball.diagonalSize += 15;
@@ -110,42 +157,36 @@ function draw() {
 
   ///////////////
   posterTasks(); // do not remove this last line!  
+  resetShader();
 }
 
-function resizeBlob(value) {
-		if(value > defaultBallSize){
-			value += 10;
-		} else if(targetValue > value) {
-			value -= 10;
-		}
-		console.log(value);
-		return(value)
-}
+
 
 function destiny(){
-	outlineBool = 0,0;
 	//updateGra('DESTINY',gra);
-	let targetPos = getBlPxPos2(buffer1);
+	let targetPos = getBlPxPos(buffer1);
 	setTargetPos(targetPos);
 	kpFrame = frameCount;
-	for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
+	for(ball of metaballs) {
+		ball.destiny();
+	}
+	
 }
 
 function density(){
-	outlineBool = 1.0;
 	//updateGra2('DENSITY', gra2);
 	let targetPos = getBlPxPos2(buffer2);
 	setTargetPos(targetPos);
 	kpFrame = frameCount;
 	for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
+	for(ball of metaballs) {
+		ball.density();
+	}
 }
 
 
 
 function mouseMoved() {
-	if (mouseY > getWindowHeight()/2) {
-		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
-	} 
 	if(mouseX > getWindowWidth()/2){
 		offset = map(mouseX, getWindowWidth()/2, getWindowWidth(), 0, 100);
 	} else {
@@ -192,12 +233,12 @@ function setTargetPos2(pos)
 
 function getBlPxPos(g)
 {
-	let ratio = 7;
+	let ratio = 5.5;
 	
 	let pos = [];
-	for(let x = 0 ; x < g.width; x += 1.2)
+	for(let x = 0 ; x < g.width; x += 4.1)
 	{
-		for(let y = 0; y < g.height; y += 1.2)
+		for(let y = 0; y < g.height; y += 4.1)
 		{
 			let col = g.get(x,y);
 			if(brightness(col) == 0)pos.push(createVector((x-g.width/2)*ratio + width/2,((g.height-y)-g.height/2)*ratio + height/2));
@@ -208,13 +249,13 @@ function getBlPxPos(g)
 
 function getBlPxPos2(g)
 {
-	let ratio = 7;
+	let ratio = 5;
 	
 	let pos = [];
 
-	for(let x = 0 ; x < g.width; x += 3)
+	for(let x = 0 ; x < g.width; x += 5.7)
 	{
-		for(let y = 0; y < g.height; y += 3)
+		for(let y = 0; y < g.height; y += 5.7)
 		{
 			let col = g.get(x,y);
 			if(brightness(col) == 0)pos.push(createVector((x-g.width/2)*ratio + width/2,((g.height-y)-g.height/2)*ratio + height/2));
@@ -244,6 +285,69 @@ function updateGra2(str,g,s = g.height)
 	g.text(str,g.width/2,g.height/2.4);
 }
 
+function analyzePos(oldX, newX) {
+
+	if(newX > oldX) {
+		leftCounter = 0;
+		stillCounter = 0;
+		rightCounter++;
+
+	} else if (oldX > newX) {
+		leftCounter++;
+		stillCounter = 0;
+		rightCounter = 0;
+
+	} else if (oldX == newX) {
+		leftCounter = 0;
+		stillCounter++;
+		rightCounter = 0;
+	}
+
+	if(leftCounter > 4){
+		changeDirectionFlow('left');
+	}  else if (rightCounter > 4) {
+		changeDirectionFlow('right');
+	} else if (stillCounter > 50) {
+		changeDirectionFlow('still');
+	}
+
+	xCache = newX;
+
+}
+
+function changeDirectionFlow(direction) {
+	console.log('DIRECTION IS ' + direction);
+	switch(direction) {
+		case 'left': {
+			if(directionFlow == 'still') {
+				for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
+			}
+			directionFlow = 'left';
+			leftCounter = 0;
+			stillCounter = 0;
+			rightCounter = 0;
+			break;
+		}
+		case 'still': {
+			directionFlow = 'still';
+			leftCounter = 0;
+			stillCounter = 0;
+			rightCounter = 0;
+			for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
+			break;
+		}
+		case 'right': {
+			if(directionFlow == 'still') {
+				for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
+			}
+			directionFlow = 'right';
+			leftCounter = 0;
+			stillCounter = 0;
+			rightCounter = 0;
+			break;
+		}
+	}
+}
 
 
 // OpenProcessing has a bug where it always creates a scrollbar on Chromium.

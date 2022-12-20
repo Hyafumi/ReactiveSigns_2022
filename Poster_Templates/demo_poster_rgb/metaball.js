@@ -7,8 +7,9 @@ class Metaball {
 		this.shrink = false;
 		this.grow = false;
 		this.frameOff = Math.floor(random(50));
-		this.diagonalSize = 600;
-	}
+		this.diagonalSize = 1250;
+		this.state = 'none';
+}
 	update()
 	{	
 
@@ -35,6 +36,14 @@ class Metaball {
 	{
 		this.grow = true;
 		this.shrink = false;
+	}
+	destiny() 
+	{
+		this.state = 'destiny';
+	}
+	density() 
+	{
+		this.state = 'density';
 	}
 	changeState(isGo)
 	{
