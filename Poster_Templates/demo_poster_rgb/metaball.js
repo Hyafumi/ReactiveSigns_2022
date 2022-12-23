@@ -7,7 +7,7 @@ class Metaball {
 		this.shrink = false;
 		this.grow = false;
 		this.frameOff = Math.floor(random(50));
-		this.diagonalSize = 1250;
+		this.diagonalSize = 1580;
 		this.state = 'none';
 }
 	update()
@@ -17,8 +17,8 @@ class Metaball {
 		if(this.gotoTarget == true) {
 			this.vel = p5.Vector.sub(this.targetPos,this.pos).mult(0.03);
 		} else {
-			if (this.pos.x < this.radius*5 && this.vel.x <0 || this.pos.x > width  - this.radius*5 && this.vel.x >0) this.vel.x *= -1;
-			if (this.pos.y < this.radius*5 && this.vel.y <0 || this.pos.y > height - this.radius*5 && this.vel.y >0) this.vel.y *= -1;
+			if (this.pos.x < this.radius*8 && this.vel.x <0 || this.pos.x > width  - this.radius*8 && this.vel.x >0) this.vel.x *= -1;
+			if (this.pos.y < this.radius*8 && this.vel.y <0 || this.pos.y > height - this.radius*8 && this.vel.y >0) this.vel.y *= -1;
 		}
 		this.pos.add(this.vel);
 	}

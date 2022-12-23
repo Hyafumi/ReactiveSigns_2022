@@ -4,7 +4,7 @@
 // depthH: The vertical resolution of the dataFiltered aray
 
 let metaballShader;
-let ballAmount = 420.0, metaballs = [];
+let ballAmount = 500.0, metaballs = [];
 let gra;
 let kpFrame = 0;
 let isConverted = false;
@@ -28,7 +28,7 @@ function preload() {
 	//metaballShader = getShader(this._renderer);
 	metaballShader = loadShader('shader/uniform.vert', 'shader/uniform.frag');
   	font = loadFont('assets/suisse.otf');
-	state1 = loadImage('assets/final12.png');
+	state1 = loadImage('assets/final22.png');
 }
 
 function setup() {
@@ -66,6 +66,17 @@ function draw() {
 		data.push(ball.pos.x+offset, ball.pos.y, ball.radius);
 	}
 
+
+	if(position.x > w/2){
+		offset = map(mouseX, w/2, w, 0, 100);
+	} else if (position.x < w/2){
+		offset = map(mouseX, 0, w/2, -100, 0);
+	} else if (tracking == false) {
+		offset = 0;
+	}
+	
+	
+
 	metaballShader.setUniform('metaballs', data);
 	metaballShader.setUniform('boolF', outlineBool);
 	metaballShader.setUniform('balls', ballAmount);
@@ -82,7 +93,9 @@ function draw() {
 		outlineBool = 1,0;
 		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
 		mouseLocation2 = map(mouseX, w/7, w/6, 1, 0);
+
 	} else if (position.x > w/6 && position.x < w/6*5){
+
 		outlineBool = 0,0;
 		let targetPos = getBlPxPos(buffer1);
 		setTargetPos(targetPos);
@@ -99,10 +112,13 @@ function draw() {
 		} else {
 			mouseLocation = map(mouseX, w/3*2, w/6*5, 1, 0);
 		}
+
 	} else {
+
 		outlineBool = 1,0;
 		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
 		mouseLocation2 = map(mouseX, w - w/6, w - w/7, 0, 1);
+
 	}
 
 
@@ -122,7 +138,7 @@ function draw() {
 					ball.diagonalSize -= 15;
 				} 
 		} else if (ball.gotoTarget == false){
-			if(ball.diagonalSize < 1750){
+			if(ball.diagonalSize < 1580){
 				ball.diagonalSize += 15;
 			} 
 		}
@@ -144,17 +160,6 @@ function destiny(){
 		ball.destiny();
 	}
 }
-
-
-
-
-function mouseMoved() {
-	if(mouseX > w/2){
-		offset = map(mouseX, w/2, w, 0, 100);
-	} else {
-		offset = map(mouseX, 0, w/2, -100, 0);
-	}
-  } 
 
 
 

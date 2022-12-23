@@ -17,7 +17,7 @@
 			float x = vTexCoord.x * winWidth;
 			float y = vTexCoord.y * winHeight;
 			float v = 0.0;
-			for (float i = 0.0; i < 420.; i++) {
+			for (float i = 0.0; i < 500.; i++) {
 				vec3 ball = metaballs[int(i)];
 				float dx = ball.x - x;
 				float dy = ball.y - y;
