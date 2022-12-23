@@ -4,7 +4,7 @@
 // depthH: The vertical resolution of the dataFiltered aray
 
 let metaballShader;
-let ballAmount = 500.0, metaballs = [];
+let ballAmount = 440.0, metaballs = [];
 let gra;
 let kpFrame = 0;
 let isConverted = false;
@@ -15,12 +15,12 @@ let defaultBallSize = 500;
 let mouseLocation;
 let mouseLocation2 = 1.0;
 
-let directionFlow = 'None';
-let leftCounter = 0;
-let stillCounter = 0;
-let rightCounter = 0;
+//Time function
+let time = 0;
+let duration = 60;
 
-let xCache;
+let w;
+let h;
 
 let outlineBool = 1.0;
 
@@ -42,9 +42,6 @@ function setup() {
   buffer1.background(0, 0, 0);
   buffer1.image(state1, 0, 0)
 
-  let w = getWindowWidth();
-  let h = getWindowHeight();
-
   noCursor();
   textFont(font);
 }
@@ -57,7 +54,7 @@ function draw() {
 	rect(0, 0, getWindowWidth(), getWindowHeight());
 
 	shader(metaballShader);
-  if(frameCount == kpFrame + 20 && kpFrame != 0)for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
+  	if(frameCount == kpFrame + 20 && kpFrame != 0)for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
 	
 	var data = [];
   
@@ -65,16 +62,6 @@ function draw() {
 		ball.update();
 		data.push(ball.pos.x+offset, ball.pos.y, ball.radius);
 	}
-
-
-	if(position.x > w/2){
-		offset = map(mouseX, w/2, w, 0, 100);
-	} else if (position.x < w/2){
-		offset = map(mouseX, 0, w/2, -100, 0);
-	} else if (tracking == false) {
-		offset = 0;
-	}
-	
 	
 
 	metaballShader.setUniform('metaballs', data);
@@ -89,36 +76,52 @@ function draw() {
 
 	rect(0, 0, w, h);
 
-	if(position.x > 0 && position.x < w/6){
+
+	if(position.x < vw*20){
 		outlineBool = 1,0;
 		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
-		mouseLocation2 = map(mouseX, w/7, w/6, 1, 0);
+ 
+		if(position.x > 15*vw) {
+			mouseLocation2 = map(mouseX, 15*vw, 20*vw, 1, 0);
+		}
 
-	} else if (position.x > w/6 && position.x < w/6*5){
+	} else if (position.x > vw*20 && position.x < vw*80){
 
 		outlineBool = 0,0;
 		let targetPos = getBlPxPos(buffer1);
 		setTargetPos(targetPos);
 		kpFrame = frameCount;
-		for(ball of metaballs) {
-			ball.destiny();
-		}
 		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(true);
-		for(ball of metaballs) {
-			ball.density();
-		}
-		if(position.x > w/6 && position.x < w/2) {
-			mouseLocation = map(mouseX, w/6, w/3, 0, 1);
-		} else {
-			mouseLocation = map(mouseX, w/3*2, w/6*5, 1, 0);
+
+		if(position.x > 15*vw && position.x < 30*vw) {
+			mouseLocation = map(position.x, 15*vw, 28*vw, 0, 1);
+			console.log(mouseLocation);
+
+		} else if (position.x > 70*vw && position.x < 85*vw) {
+			mouseLocation = map(position.x, 70*vw, 83*vw, 1, 0);
+			console.log(mouseLocation);
 		}
 
 	} else {
 
 		outlineBool = 1,0;
 		for(let i = 0; i < metaballs.length; i++)metaballs[i].changeState(false);
-		mouseLocation2 = map(mouseX, w - w/6, w - w/7, 0, 1);
 
+		if(position.x > 80*vw && position.x < 85*vw) {
+			mouseLocation2 = map(mouseX, 80*vw, 85*vw, 0, 1);
+		}
+	}
+
+
+	if(position.x > 50*vw && position.x < 100*vw){
+		time += 1;
+		offset = lerp(offset, map(position.x, 50*vw, 100*vw, 0, 150), time / duration);
+	} else if (position.x > 0 && position.x < 50*vw){
+		time += 1;
+		offset = lerp(offset, map(position.x, 0*vw, 50*vw, -150, 0), time / duration);
+	} else {
+		time = 0;
+		offset -= offset  * 0.1;
 	}
 
 
@@ -138,18 +141,31 @@ function draw() {
 					ball.diagonalSize -= 15;
 				} 
 		} else if (ball.gotoTarget == false){
-			if(ball.diagonalSize < 1580){
+			if(ball.diagonalSize < 1400){
 				ball.diagonalSize += 15;
 			} 
 		}
 	} 
   
+	  // Increment the time
+	  console.log(time);
 
-  ///////////////
-  posterTasks(); // do not remove this last line!  
+	  // Reset the time if it exceeds the duration
+	  if (time > duration) {
+		time = 0;
+	  }
+
+  ///////////////// do not remove this last line!  
+  posterTasks(); 
   resetShader();
 }
 
+function easeInOutQuad(t, b, c, d) {
+	t /= d / 2;
+	if (t < 1) return c / 2 * t * t + b;
+	t--;
+	return -c / 2 * (t * (t - 2) - 1) + b;
+  }
 
 
 function destiny(){

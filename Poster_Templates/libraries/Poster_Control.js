@@ -61,7 +61,7 @@ function getWindowHeight() {
   } else {
     fullscreenMode = false;
   }
-  console.log("fullscreenMode = "+fullscreenMode);
+  //console.log("fullscreenMode = "+fullscreenMode);
   return posterHeight;
   
 }
